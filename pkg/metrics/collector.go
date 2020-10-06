@@ -81,13 +81,10 @@ func (collector *collector) Describe(ch chan<- *prometheus.Desc) {
 
 // Collect fills given channel with metrics data.
 func (collector *collector) Collect(ch chan<- prometheus.Metric) {
-	log.Print(collector.server.GetInstances("virtual-machine"))
-	//ar InstanceTypes [2]string
-	//InstanceTypes[0] = "container"
-	//InstanceTypes[1] = "virtual-machine"
+	//log.Print(collector.server.GetInstances("virtual-machine"))
 	InstanceTypes := []lxdapi.InstanceType{"container", "virtual-machine"}
 	for _, InstanceType := range InstanceTypes {
-		log.Print(InstanceType)
+		//log.Print(InstanceType)
 		InstanceNames, err := collector.server.GetInstanceNames(InstanceType)
 		if err != nil {
 			collector.logger.Printf("Can't query instancenames: %s", err)
@@ -113,7 +110,7 @@ func (collector *collector) collectInstanceMetrics(
 	state *lxdapi.InstanceState,
 	InstanceType string,
 ) {
-	log.Print(InstanceType, InstanceName)
+	//log.Print(InstanceType, InstanceName)
 	ch <- prometheus.MustNewConstMetric(cpuUsageDesc,
 		prometheus.GaugeValue, float64(state.CPU.Usage), InstanceName, InstanceType)
 	ch <- prometheus.MustNewConstMetric(processCountDesc,
