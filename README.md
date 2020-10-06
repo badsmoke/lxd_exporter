@@ -21,9 +21,9 @@ services:
         image: badsmoke/lxd_exporter
         restart: always
         volumes:
-            - '/var/snap/lxd/common/lxd/:/var/snap/lxd/common/lxd/'
+            - "/var/snap/lxd/common/lxd/:/var/snap/lxd/common/lxd/"
         environment:
-            - LXD_DIR="/var/snap/lxd/common/lxd/"
+            - "LXD_DIR=/var/snap/lxd/common/lxd/"
         ports:
             - 9472:9472
 
