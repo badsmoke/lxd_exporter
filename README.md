@@ -1,18 +1,32 @@
 # lxd_exporter
 
-[![Build Status](https://travis-ci.org/nieltg/lxd_exporter.svg?branch=master)](https://travis-ci.org/nieltg/lxd_exporter)
-[![Go Report Card](https://goreportcard.com/badge/github.com/nieltg/lxd_exporter)](https://goreportcard.com/report/github.com/nieltg/lxd_exporter)
-[![Coverage Status](https://coveralls.io/repos/github/nieltg/lxd_exporter/badge.svg?branch=master)](https://coveralls.io/github/nieltg/lxd_exporter?branch=master)
 
-LXD metrics exporter for Prometheus. Improved version of [viveksing/lxdexporter_golang](https://github.com/viveksing/lxdexporter_golang).
+
+LXD metrics exporter for Prometheus. Improved version of [nieltg/lxdexporter](https://github.com/nieltg/lxd_exporter).
 
 ## Usage
 
-Download latest precompiled binary of this exporter from [the release page](https://github.com/nieltg/lxd_exporter/releases).
+Download latest docker image of this exporter from [the release page](https://github.com/nieltg/lxd_exporter/releases).
 
-Extract archive, then run the exporter:
+run as container
 ```
-./lxd_exporter
+docker run -d -e LXD_DIR="/var/snap/lxd/common/lxd/" -v /var/snap/lxd/common/lxd/:/var/snap/lxd/common/lxd/ -p 9472:9472 lxd_exporter
+```
+
+docker-compose
+```
+version: "3"
+services:
+    lxd_exporter:
+        image: badsmoke/lxd_exporter
+        restart: always
+        volumes:
+            - '/var/snap/lxd/common/lxd/:/var/snap/lxd/common/lxd/'
+        environment:
+            - LXD_DIR="/var/snap/lxd/common/lxd/"
+        ports:
+            - 9472:9472
+
 ```
 
 The exporter must have access to LXD socket which can be guided by:
@@ -23,21 +37,11 @@ For more information, you can see the documentation from [Go LXD client library]
 
 ## Hacking
 
-Install [Go](https://golang.org/dl) before hacking this library.
-
-To run all tests:
+docker build
 ```
-go test ./...
-```
+docker build -t badsmoke/lxd_exporter:1.0.0 .
 
-To build exporter binary:
 ```
-mkdir build
-go build -o build ./...
-```
-
-Binary will be available on `build/` directory.
-
 ## License
 
 [MIT](LICENSE).
