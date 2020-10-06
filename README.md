@@ -43,7 +43,7 @@ docker build -t badsmoke/lxd_exporter:1.0.0 .
 
 ```
 
-Output hostname:9472/metrics
+## Output hostname:9472/metrics
 
 ```
 # HELP lxd_instance_cpu_usage instanceCPU Usage in Seconds
