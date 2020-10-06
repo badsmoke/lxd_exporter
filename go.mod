@@ -1,6 +1,6 @@
-module github.com/nieltg/lxd_exporter
+module github.com/badsmoke/lxd_exporter
 
-go 1.13
+go 1.15
 
 require (
 	github.com/flosch/pongo2 v0.0.0-20190707114632-bbf5a6c351f4 // indirect
@@ -8,7 +8,7 @@ require (
 	github.com/gorilla/websocket v1.4.1
 	github.com/juju/webbrowser v1.0.0 // indirect
 	github.com/julienschmidt/httprouter v1.3.0 // indirect
-	github.com/lxc/lxd v0.0.0-20191027145841-f86d0d25e54b
+	github.com/lxc/lxd v0.0.0-20201006054016-d77b1e8a568e
 	github.com/nieltg/prom-example-testutil v0.0.0-20191028084913-c70c55308302
 	github.com/prometheus/client_golang v1.2.1
 	github.com/prometheus/common v0.7.0

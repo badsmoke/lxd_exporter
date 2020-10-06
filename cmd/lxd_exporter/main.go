@@ -7,7 +7,7 @@ import (
 	"os"
 
 	lxd "github.com/lxc/lxd/client"
-	"github.com/nieltg/lxd_exporter/pkg/metrics"
+	"github.com/badsmoke/lxd_exporter/pkg/metrics"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"gopkg.in/alecthomas/kingpin.v2"
