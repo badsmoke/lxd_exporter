@@ -5,14 +5,11 @@ ENV GO111MODULE=on \
   GOOS=linux \
   GOARCH=amd64
 
-
-
 RUN apk add make git gcc libc-dev 
 WORKDIR /src
+RUN mkdir bin
 COPY . .
 
-
-RUN mkdir bin
 RUN go build -o bin/ ./...
 
 FROM alpine:latest

@@ -21,47 +21,47 @@ func NewCollector(
 }
 
 var (
-	cpuUsageDesc = prometheus.NewDesc("lxd_container_cpu_usage",
-		"Container CPU Usage in Seconds",
-		[]string{"container_name"}, nil,
+	cpuUsageDesc = prometheus.NewDesc("lxd_instance_cpu_usage",
+		"instanceCPU Usage in Seconds",
+		[]string{"instance_name","instance_type"}, nil,
 	)
-	diskUsageDesc = prometheus.NewDesc("lxd_container_disk_usage",
-		"Container Disk Usage",
-		[]string{"container_name", "disk_device"}, nil,
+	diskUsageDesc = prometheus.NewDesc("lxd_instance_disk_usage",
+		"instanceDisk Usage",
+		[]string{"instance_name", "disk_device","instance_type"}, nil,
 	)
-	networkUsageDesc = prometheus.NewDesc("lxd_container_network_usage",
-		"Container Network Usage",
-		[]string{"container_name", "interface", "operation"}, nil,
-	)
-
-	memUsageDesc = prometheus.NewDesc("lxd_container_mem_usage",
-		"Container Memory Usage",
-		[]string{"container_name"}, nil,
-	)
-	memUsagePeakDesc = prometheus.NewDesc("lxd_container_mem_usage_peak",
-		"Container Memory Usage Peak",
-		[]string{"container_name"}, nil,
-	)
-	swapUsageDesc = prometheus.NewDesc("lxd_container_swap_usage",
-		"Container Swap Usage",
-		[]string{"container_name"}, nil,
-	)
-	swapUsagePeakDesc = prometheus.NewDesc("lxd_container_swap_usage_peak",
-		"Container Swap Usage Peak",
-		[]string{"container_name"}, nil,
+	networkUsageDesc = prometheus.NewDesc("lxd_instance_network_usage",
+		"instanceNetwork Usage",
+		[]string{"instance_name", "interface", "operation","instance_type"}, nil,
 	)
 
-	processCountDesc = prometheus.NewDesc("lxd_container_process_count",
-		"Container number of process Running",
-		[]string{"container_name"}, nil,
+	memUsageDesc = prometheus.NewDesc("lxd_instance_mem_usage",
+		"instanceMemory Usage",
+		[]string{"instance_name","instance_type"}, nil,
 	)
-	containerPIDDesc = prometheus.NewDesc("lxd_container_pid",
-		"Container PID",
-		[]string{"container_name"}, nil,
+	memUsagePeakDesc = prometheus.NewDesc("lxd_instance_mem_usage_peak",
+		"instanceMemory Usage Peak",
+		[]string{"instance_name","instance_type"}, nil,
 	)
-	runningStatusDesc = prometheus.NewDesc("lxd_container_running_status",
-		"Container Running Status",
-		[]string{"container_name"}, nil,
+	swapUsageDesc = prometheus.NewDesc("lxd_instance_swap_usage",
+		"instanceSwap Usage",
+		[]string{"instance_name","instance_type"}, nil,
+	)
+	swapUsagePeakDesc = prometheus.NewDesc("lxd_instance_swap_usage_peak",
+		"instanceSwap Usage Peak",
+		[]string{"instance_name","instance_type"}, nil,
+	)
+
+	processCountDesc = prometheus.NewDesc("lxd_instance_process_count",
+		"instancenumber of process Running",
+		[]string{"instance_name","instance_type"}, nil,
+	)
+	InstancePIDDesc = prometheus.NewDesc("lxd_instance_pid",
+		"instancePID",
+		[]string{"instance_name","instance_type"}, nil,
+	)
+	runningStatusDesc = prometheus.NewDesc("lxd_instance_running_status",
+		"instanceRunning Status",
+		[]string{"instance_name","instance_type"}, nil,
 	)
 )
 
@@ -73,7 +73,7 @@ func (collector *collector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- swapUsageDesc
 	ch <- swapUsagePeakDesc
 	ch <- processCountDesc
-	ch <- containerPIDDesc
+	ch <- InstancePIDDesc
 	ch <- runningStatusDesc
 	ch <- diskUsageDesc
 	ch <- networkUsageDesc
@@ -81,55 +81,65 @@ func (collector *collector) Describe(ch chan<- *prometheus.Desc) {
 
 // Collect fills given channel with metrics data.
 func (collector *collector) Collect(ch chan<- prometheus.Metric) {
-	containerNames, err := collector.server.GetContainerNames()
-	if err != nil {
-		collector.logger.Printf("Can't query container names: %s", err)
-		return
-	}
-
-	for _, containerName := range containerNames {
-		state, _, err := collector.server.GetContainerState(containerName)
+	log.Print(collector.server.GetInstances("virtual-machine"))
+	//ar InstanceTypes [2]string
+	//InstanceTypes[0] = "container"
+	//InstanceTypes[1] = "virtual-machine"
+	InstanceTypes := []lxdapi.InstanceType{"container", "virtual-machine"}
+	for _, InstanceType := range InstanceTypes {
+		log.Print(InstanceType)
+		InstanceNames, err := collector.server.GetInstanceNames(InstanceType)
 		if err != nil {
-			collector.logger.Printf(
-				"Can't query container state for `%s`: %s", containerName, err)
-			continue
+			collector.logger.Printf("Can't query instancenames: %s", err)
+			return
 		}
 
-		collector.collectContainerMetrics(ch, containerName, state)
+		for _, InstanceName := range InstanceNames {
+			state, _, err := collector.server.GetInstanceState(InstanceName)
+			if err != nil {
+				collector.logger.Printf(
+					"Can't query instancestate for `%s`: %s", InstanceName, err)
+				continue
+			}
+			
+			collector.collectInstanceMetrics(ch, InstanceName, state, string(InstanceType) )
+		}
 	}
 }
 
-func (collector *collector) collectContainerMetrics(
+func (collector *collector) collectInstanceMetrics(
 	ch chan<- prometheus.Metric,
-	containerName string,
-	state *lxdapi.ContainerState,
+	InstanceName string,
+	state *lxdapi.InstanceState,
+	InstanceType string,
 ) {
+	log.Print(InstanceType, InstanceName)
 	ch <- prometheus.MustNewConstMetric(cpuUsageDesc,
-		prometheus.GaugeValue, float64(state.CPU.Usage), containerName)
+		prometheus.GaugeValue, float64(state.CPU.Usage), InstanceName, InstanceType)
 	ch <- prometheus.MustNewConstMetric(processCountDesc,
-		prometheus.GaugeValue, float64(state.Processes), containerName)
+		prometheus.GaugeValue, float64(state.Processes), InstanceName, InstanceType)
 	ch <- prometheus.MustNewConstMetric(
-		containerPIDDesc, prometheus.GaugeValue, float64(state.Pid), containerName)
+		InstancePIDDesc, prometheus.GaugeValue, float64(state.Pid), InstanceName, InstanceType)
 
 	ch <- prometheus.MustNewConstMetric(memUsageDesc,
-		prometheus.GaugeValue, float64(state.Memory.Usage), containerName)
+		prometheus.GaugeValue, float64(state.Memory.Usage), InstanceName, InstanceType)
 	ch <- prometheus.MustNewConstMetric(memUsagePeakDesc,
-		prometheus.GaugeValue, float64(state.Memory.UsagePeak), containerName)
+		prometheus.GaugeValue, float64(state.Memory.UsagePeak), InstanceName, InstanceType)
 	ch <- prometheus.MustNewConstMetric(swapUsageDesc,
-		prometheus.GaugeValue, float64(state.Memory.SwapUsage), containerName)
+		prometheus.GaugeValue, float64(state.Memory.SwapUsage), InstanceName, InstanceType)
 	ch <- prometheus.MustNewConstMetric(swapUsagePeakDesc,
-		prometheus.GaugeValue, float64(state.Memory.SwapUsagePeak), containerName)
+		prometheus.GaugeValue, float64(state.Memory.SwapUsagePeak), InstanceName, InstanceType)
 
 	runningStatus := 0
 	if state.Status == "Running" {
 		runningStatus = 1
 	}
 	ch <- prometheus.MustNewConstMetric(runningStatusDesc,
-		prometheus.GaugeValue, float64(runningStatus), containerName)
+		prometheus.GaugeValue, float64(runningStatus), InstanceName, InstanceType)
 
 	for diskName, state := range state.Disk {
 		ch <- prometheus.MustNewConstMetric(diskUsageDesc,
-			prometheus.GaugeValue, float64(state.Usage), containerName, diskName)
+			prometheus.GaugeValue, float64(state.Usage), InstanceName, diskName, InstanceType)
 	}
 
 	for ethName, state := range state.Network {
@@ -142,7 +152,7 @@ func (collector *collector) collectContainerMetrics(
 
 		for opName, value := range networkMetrics {
 			ch <- prometheus.MustNewConstMetric(networkUsageDesc,
-				prometheus.GaugeValue, float64(value), containerName, ethName, opName)
+				prometheus.GaugeValue, float64(value), InstanceName, ethName, opName, InstanceType)
 		}
 	}
 }

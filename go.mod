@@ -10,7 +10,7 @@ require (
 	github.com/julienschmidt/httprouter v1.3.0 // indirect
 	github.com/lxc/lxd v0.0.0-20201006054016-d77b1e8a568e
 	github.com/nieltg/prom-example-testutil v0.0.0-20191028084913-c70c55308302
-	github.com/prometheus/client_golang v1.2.1
+	github.com/prometheus/client_golang v1.7.1
 	github.com/prometheus/common v0.7.0
 	github.com/rogpeppe/fastuuid v1.2.0 // indirect
 	github.com/stretchr/testify v1.4.0
